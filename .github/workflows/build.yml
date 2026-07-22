@@ -1,11 +1,16 @@
 name: Build and Deploy
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
     tags:
       - "v*.*.*"
     paths:
+      - .github/.docker/**
+      - .github/workflows/build.yml
+      - .github/workflows/prebuild.yml
+      - .github/workflows/test.yml
       - packages/app/**
       - packages/shared/**
   workflow_call:
