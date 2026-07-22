@@ -65,5 +65,15 @@ jobs:
       #   working-directory: ${{ matrix.suite }}
 
       - name: Test
-        run: bun test --env-file=../app/.env ${{ matrix.suite }} --timeout 10000 --rerun-each 2
-        working-directory: test
+        shell: bash
+        run: |
+          set -a
+          source packages/${{ matrix.suite }}/${{ matrix.env_file }}
+          set +a
+
+          ./target/release/enstate &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+          cd test
+          bun test --env-file=../packages/${{ matrix.suite }}/${{ matrix.env_file }} tests/server.spec.ts --timeout 10000 --rerun-each 2
