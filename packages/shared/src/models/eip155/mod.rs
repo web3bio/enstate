@@ -2,13 +2,13 @@ use ethers::middleware::Middleware;
 use ethers::providers::ProviderError;
 use ethers_core::{
     abi::{ParamType, Token},
-    types::{Bytes, H160, transaction::eip2718::TypedTransaction, U256},
+    types::{transaction::eip2718::TypedTransaction, Bytes, H160, U256},
 };
 use thiserror::Error;
 use tracing::info;
 use tracing::instrument;
 
-use crate::models::eip155::url::{OPENSEA_BASE_PREFIX, URLFetchError, URLParseError, URLUnparsed};
+use crate::models::eip155::url::{URLFetchError, URLParseError, URLUnparsed, OPENSEA_BASE_PREFIX};
 use crate::models::lookup::LookupState;
 use crate::models::multicoin::cointype::evm::ChainId;
 
@@ -142,11 +142,18 @@ mod tests {
 
     use super::*;
 
+    fn rpc_provider() -> CCIPReadMiddleware<Arc<Provider<Http>>> {
+        let rpc_url =
+            env::var("RPC_URL").unwrap_or_else(|_| "https://ethereum.publicnode.com".to_string());
+
+        Provider::<Http>::try_from(rpc_url)
+            .unwrap()
+            .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)))
+    }
+
     #[tokio::test]
     async fn test_calldata_avatar_erc721() {
-        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
-            .unwrap()
-            .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)));
+        let provider = rpc_provider();
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let state = LookupState {
@@ -171,9 +178,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_calldata_avatar_erc1155() {
-        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
-            .unwrap()
-            .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)));
+        let provider = rpc_provider();
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let state = LookupState {
@@ -202,9 +207,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_calldata_avatar_erc1155_opensea() {
-        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
-            .unwrap()
-            .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)));
+        let provider = rpc_provider();
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let state = LookupState {
@@ -232,9 +235,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_calldata_avatar_erc1155z() {
-        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
-            .unwrap()
-            .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)));
+        let provider = rpc_provider();
 
         let state = LookupState {
             rpc: Arc::new(provider),
@@ -247,7 +248,10 @@ mod tests {
             ChainId::Ethereum,
             EIP155ContractType::ERC1155,
             "0x495f947276749ce646f68ac8c248420045cb7b5e",
-            U256::from_dec_str("109791375735522898048150917964456965919994596086232976516654423066184641413121").unwrap(),
+            U256::from_dec_str(
+                "109791375735522898048150917964456965919994596086232976516654423066184641413121",
+            )
+            .unwrap(),
             &state,
         )
         .await

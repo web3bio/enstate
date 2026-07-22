@@ -2,16 +2,16 @@ name: 'enstate'
 
 services:
   enstate:
-    image: ghcr.io/v3xlabs/enstate:latest
+    image: ghcr.io/web3bio/enstate:newresolver
     ports:
       - "8000:8000"
     volumes:
       - ./data:/data
     environment:
       - PORT=8000
-      - UNIVERSAL_RESOLVER=0x8cab227b1162f03b8338331adaad7aadc83b895e
+      - UNIVERSAL_RESOLVER=0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe
       - REDIS_URL=redis://redis:6379
-      - RPC_URL=https://rpc.ankr.com/eth
+      - RPC_URL=${RPC_URL:?set RPC_URL in .env}
     env_file: .env
 
   redis:

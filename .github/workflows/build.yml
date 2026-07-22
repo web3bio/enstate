@@ -55,8 +55,9 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/v3xlabs/enstate
+            ghcr.io/web3bio/enstate
           tags: |
+            type=raw,value=newresolver
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
@@ -85,5 +86,5 @@ jobs:
           context: .
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=ghcr.io/v3xlabs/enstate:edge
+          cache-from: type=registry,ref=ghcr.io/web3bio/enstate:edge
           cache-to: type=inline

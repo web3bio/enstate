@@ -72,8 +72,8 @@ pub async fn get(
             }
 
             Result::<_, _>::from(res.response.remove(0))
-            .map(Json)
-            .map_err(RouteError::from)
+                .map(Json)
+                .map_err(RouteError::from)
         }
         Err(e) => Err(e),
     }

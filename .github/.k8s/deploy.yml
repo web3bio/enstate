@@ -49,7 +49,7 @@ spec:
     spec:
       containers:
         - name: enstate
-          image: ghcr.io/v3xlabs/enstate:edge
+          image: ghcr.io/web3bio/enstate:newresolver
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -67,7 +67,7 @@ spec:
             - name: REDIS_URL
               value: redis://redis.enstate.svc.cluster.local:6379
             - name: UNIVERSAL_RESOLVER
-              value: "0x8cab227b1162f03b8338331adaad7aadc83b895e"
+              value: "0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe"
             - name: IPFS_GATEWAY
               value: https://cloudflare-ipfs.com/ipfs/
             - name: OTLP_ENDPOINT

@@ -1,14 +1,14 @@
+use ethers_core::types::U256;
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
 };
-use ethers_core::types::U256;
 use hex_literal::hex;
 use lazy_static::lazy_static;
 use thiserror::Error;
 use tracing::info;
 
-use crate::models::eip155::{EIP155ContractType, resolve_eip155};
+use crate::models::eip155::{resolve_eip155, EIP155ContractType};
 use crate::models::multicoin::cointype::evm::ChainId;
 
 use super::{abi_decode_universal_ccip, ENSLookupError, LookupState};
@@ -19,9 +19,10 @@ lazy_static! {
             .expect("should be a valid regex");
     static ref ARWEAVE_REGEX: regex::Regex =
         regex::Regex::new(r"^ar://(.+)").expect("should be a valid regex");
-    static ref EIP155_REGEX: regex::Regex =
-        regex::Regex::new(r"(?i:eip155):([0-9]+)/(?i:(erc1155|erc721)):0x([0-9a-fA-F]{40})/([0-9]+)")
-            .expect("should be a valid regex");
+    static ref EIP155_REGEX: regex::Regex = regex::Regex::new(
+        r"(?i:eip155):([0-9]+)/(?i:(erc1155|erc721)):0x([0-9a-fA-F]{40})/([0-9]+)"
+    )
+    .expect("should be a valid regex");
 }
 #[derive(Error, Debug)]
 enum ImageLookupError {

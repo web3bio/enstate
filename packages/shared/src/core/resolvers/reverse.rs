@@ -1,19 +1,13 @@
-use ethers::middleware::Middleware;
-use ethers::prelude::{Address, ProviderError, H256};
-use ethers::providers::{namehash, Provider};
-use ethers_contract::providers::Http;
+use ethers::prelude::{Address, ProviderError};
 use ethers_core::abi;
-use ethers_core::abi::{AbiEncode, ParamType, Token};
+use ethers_core::abi::{ParamType, Token};
 use ethers_core::types::transaction::eip2718::TypedTransaction;
-use ethers_core::types::Bytes;
+use ethers_core::types::{Bytes, U256};
 use hex_literal::hex;
-use lazy_static::lazy_static;
 use thiserror::Error;
 use tracing::instrument;
 
-use crate::core::resolvers::universal::resolve_universal;
 use crate::core::CCIPProvider;
-use crate::models::lookup::{addr, ENSLookup};
 
 #[derive(Error, Debug)]
 pub enum ReverseResolveError {
@@ -33,42 +27,8 @@ pub enum ReverseResolveError {
     AbiDecodeError(#[from] abi::Error),
 }
 
-lazy_static! {
-    static ref BASE_REGISTRY: Address = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"
-        .parse()
-        .expect("should be a valid address");
-}
-
-const REVERSE_NAME_SUFFIX: &str = "addr.reverse";
-
-const RESOLVE_SELECTOR: [u8; 4] = hex!("0178b8bf");
-const NAME_SELECTOR: [u8; 4] = hex!("691f3431");
-
-#[instrument(skip(rpc))]
-async fn find_resolver(
-    rpc: &Provider<Http>,
-    namehash: &H256,
-) -> Result<Address, ReverseResolveError> {
-    let mut transaction = TypedTransaction::default();
-
-    transaction.set_to(*BASE_REGISTRY);
-
-    let encoded = abi::encode(&[Token::FixedBytes(namehash.encode())]);
-    transaction.set_data(Bytes::from(
-        [&RESOLVE_SELECTOR, encoded.as_slice()].concat(),
-    ));
-
-    let res = rpc.call(&transaction, None).await?;
-
-    let address = abi::decode(&[ParamType::Address], &res)?
-        .first()
-        .unwrap()
-        .clone()
-        .into_address()
-        .unwrap();
-
-    Ok(address)
-}
+const REVERSE_SELECTOR: [u8; 4] = hex!("5d78a217");
+const ETH_COIN_TYPE: u64 = 60;
 
 #[instrument(skip(rpc))]
 pub async fn resolve_reverse(
@@ -76,47 +36,54 @@ pub async fn resolve_reverse(
     address: &Address,
     universal_resolver: &Address,
 ) -> Result<String, ReverseResolveError> {
-    let reverse_namehash = namehash(&format!(
-        "{}.{REVERSE_NAME_SUFFIX}",
-        hex::encode(address.as_bytes())
+    resolve_reverse_coin_type(rpc, address, ETH_COIN_TYPE, universal_resolver).await
+}
+
+#[instrument(skip(rpc))]
+pub async fn resolve_reverse_coin_type(
+    rpc: &CCIPProvider,
+    address: &Address,
+    coin_type: u64,
+    universal_resolver: &Address,
+) -> Result<String, ReverseResolveError> {
+    let mut transaction = TypedTransaction::default();
+
+    transaction.set_to(*universal_resolver);
+
+    let encoded = abi::encode(&[
+        Token::Bytes(address.as_bytes().to_vec()),
+        Token::Uint(U256::from(coin_type)),
+    ]);
+    transaction.set_data(Bytes::from(
+        [&REVERSE_SELECTOR, encoded.as_slice()].concat(),
     ));
 
-    let resolver = find_resolver(rpc.inner(), &reverse_namehash).await?;
+    let res = rpc
+        .call_ccip(&transaction, None)
+        .await
+        .map_err(|err| ReverseResolveError::AddressLookupError(err.to_string()))?
+        .0;
 
-    if resolver.is_zero() {
+    let mut decoded = abi::decode(
+        &[ParamType::String, ParamType::Address, ParamType::Address],
+        &res,
+    )?;
+
+    let name = decoded
+        .remove(0)
+        .into_string()
+        .ok_or(ReverseResolveError::AbiDecodeError(abi::Error::InvalidData))?;
+
+    if name.is_empty() {
         return Err(ReverseResolveError::MissingPrimaryName);
     }
 
-    let mut transaction = TypedTransaction::default();
+    let resolver = decoded
+        .remove(0)
+        .into_address()
+        .ok_or(ReverseResolveError::AbiDecodeError(abi::Error::InvalidData))?;
 
-    transaction.set_to(resolver);
-
-    let encoded = abi::encode(&[Token::FixedBytes(reverse_namehash.encode())]);
-    transaction.set_data(Bytes::from([&NAME_SELECTOR, encoded.as_slice()].concat()));
-
-    let res = rpc.inner().call(&transaction, None).await?;
-
-    let name = abi::decode(&[ParamType::String], &res)?
-        .first()
-        .unwrap()
-        .clone()
-        .into_string()
-        .unwrap();
-
-    let (mut res, _, _) = resolve_universal(&name, &[ENSLookup::Addr], rpc, universal_resolver)
-        .await
-        .map_err(|err| ReverseResolveError::AddressLookupError(err.to_string()))?;
-
-    let addr_result = res.remove(0);
-    if !addr_result.success {
-        return Err(ReverseResolveError::AddressMismatch);
-    }
-
-    let decoded = addr::decode(&addr_result.data)
-        .await
-        .map_err(|err| ReverseResolveError::AddressLookupError(err.to_string()))?;
-
-    if !matches!(decoded.parse::<Address>(), Ok(ref parsed) if parsed == address) {
+    if resolver.is_zero() {
         return Err(ReverseResolveError::AddressMismatch);
     }
 
@@ -134,7 +101,9 @@ mod tests {
 
     #[tokio::test]
     async fn test() {
-        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
+        let rpc_url = std::env::var("RPC_URL")
+            .unwrap_or_else(|_| "https://ethereum.publicnode.com".to_string());
+        let provider = Provider::<Http>::try_from(rpc_url).unwrap();
 
         let provider = CCIPReadMiddleware::new(Arc::new(provider));
 
@@ -144,7 +113,7 @@ mod tests {
                 &"0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5"
                     .parse()
                     .unwrap(),
-                &"0x8cab227b1162f03b8338331adaad7aadc83b895e"
+                &"0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe"
                     .parse()
                     .unwrap(),
             )
@@ -159,7 +128,7 @@ mod tests {
                 &"0x2B5c7025998f88550Ef2fEce8bf87935f542C190"
                     .parse()
                     .unwrap(),
-                &"0x8cab227b1162f03b8338331adaad7aadc83b895e"
+                &"0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe"
                     .parse()
                     .unwrap(),
             )

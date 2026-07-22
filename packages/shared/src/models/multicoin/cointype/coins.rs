@@ -69,6 +69,17 @@ mod tests {
     }
 
     #[test]
+    fn test_coin_type_evm_shortnames() {
+        assert_eq!(CoinType::from(10 | 0x8000_0000).to_string(), "op");
+        assert_eq!(CoinType::from(42161 | 0x8000_0000).to_string(), "arb1");
+        assert_eq!(CoinType::from(8453 | 0x8000_0000).to_string(), "base");
+        assert_eq!(CoinType::from(137 | 0x8000_0000).to_string(), "matic");
+        assert_eq!(CoinType::from(59144 | 0x8000_0000).to_string(), "linea");
+        assert_eq!(CoinType::from(534352 | 0x8000_0000).to_string(), "scr");
+        assert_eq!(CoinType::from(42220 | 0x8000_0000).to_string(), "celo");
+    }
+
+    #[test]
     fn test_to_coin_type() {
         let coin_type: CoinType = CoinType::from(0);
 

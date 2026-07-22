@@ -8,18 +8,18 @@ use enstate_shared::core::error::ProfileError;
 use enstate_shared::core::lookup_data::LookupInfo;
 use enstate_shared::models::lookup::ENSLookup;
 
-use crate::routes::{FreshQuery, http_simple_status_error, profile_http_error_mapper, RouteError};
+use crate::routes::{http_simple_status_error, profile_http_error_mapper, FreshQuery, RouteError};
 
 /// Banner Endpoint
-/// 
+///
 /// This is the endpoint for getting an avatar image.
 /// It performs some pre-compute on the image to ensure it is `<img />` tag friendly.
-/// 
+///
 /// To use in your app, you can use the following HTML:
 /// ```html
 /// <img src="https://enstate.rs/i/luc.eth" alt="luc.eth" />
 /// ```
-/// 
+///
 /// Note: you should probably still have a fallback image in case the image is not found.
 #[utoipa::path(
     head,

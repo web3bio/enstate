@@ -15,10 +15,10 @@ use crate::models::multicoin::cointype::coins::CoinType;
 use super::multicoin::decoding::MulticoinDecoderError;
 
 pub mod addr;
+pub mod contenthash;
 pub mod image;
 pub mod multicoin;
 pub mod text;
-pub mod contenthash;
 
 #[derive(Error, Debug)]
 pub enum ENSLookupError {

@@ -31,13 +31,7 @@ impl CacheLayer for Redis {
     async fn set(&self, key: &str, value: &str, expires: u32) -> Result<(), CacheError> {
         let mut redis = self.redis.clone();
 
-        let x: Result<(), _> = redis
-            .set_ex(
-                key,
-                value,
-                expires.into(),
-            )
-            .await;
+        let x: Result<(), _> = redis.set_ex(key, value, expires.into()).await;
 
         match x {
             Ok(()) => Ok(()),

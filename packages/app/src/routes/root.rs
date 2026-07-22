@@ -2,7 +2,7 @@ use axum::Json;
 use enstate_shared::meta::{AppMeta, APP_META};
 
 /// Me Endpoint
-/// 
+///
 /// This Endpoint returns the build information of the running process.
 #[utoipa::path(
     get,

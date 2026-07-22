@@ -41,7 +41,8 @@ impl Metrics {
             "Total number of rate limit infringements",
         );
 
-        let rate_limit_infringements = CounterVec::new(rate_limit_infringements_opts, &["ip"]).unwrap();
+        let rate_limit_infringements =
+            CounterVec::new(rate_limit_infringements_opts, &["ip"]).unwrap();
         registry
             .register(Box::new(rate_limit_infringements.clone()))
             .unwrap();

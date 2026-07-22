@@ -12,7 +12,9 @@ pub struct ENSProfile {
     #[schema(example = "0x225f137127d9067788314bc7fcc1f36746a3c3B5")]
     pub address: Option<String>,
     // Avatar URL
-    #[schema(example = "https://cloudflare-ipfs.com/ipfs/bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu")]
+    #[schema(
+        example = "https://cloudflare-ipfs.com/ipfs/bafkreifnrjhkl7ccr2ifwn2n7ap6dh2way25a6w5x2szegvj5pt4b5nvfu"
+    )]
     pub avatar: Option<String>,
     // Preferred Capitalization of Name
     #[schema(example = "LuC.eTh")]

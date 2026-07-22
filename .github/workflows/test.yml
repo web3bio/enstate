@@ -62,7 +62,7 @@ jobs:
           cat <<EOF > ${{ matrix.env_file }}
           RPC_URL=$RPC_URL
           OPENSEA_API_KEY=$OPENSEA_API_KEY
-          UNIVERSAL_RESOLVER=0x8cab227b1162f03b8338331adaad7aadc83b895e
+          UNIVERSAL_RESOLVER=0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe
           EOF
         working-directory: packages/${{ matrix.suite }}
 

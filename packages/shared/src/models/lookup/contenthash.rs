@@ -81,7 +81,9 @@ pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
             // // )
             // // .to_string();
             // Ok(format!("ipns://{value}"))
-            Err(ENSLookupError::Unsupported("IPNS contenthash is not supported".to_string()))
+            Err(ENSLookupError::Unsupported(
+                "IPNS contenthash is not supported".to_string(),
+            ))
         }
         // TODO: Add support for other contenthash types
         // onion

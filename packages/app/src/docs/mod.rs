@@ -13,7 +13,7 @@ use utoipa::OpenApi;
 #[openapi(
     info(
         title = "enstate.rs",
-        description = "A hosted ENS API allowing for easy access to ENS data.\n\nYou can checkout the source code, contribute, or host a version for yourself at [v3xlabs/enstate](https://github.com/v3xlabs/enstate).",
+        description = "A hosted ENS API allowing for easy access to ENS data.\n\nYou can checkout the source code, contribute, or host a version for yourself at [web3bio/enstate](https://github.com/web3bio/enstate).",
     ),
     paths(
         crate::routes::address::get, crate::routes::name::get, crate::routes::universal::get,
@@ -34,7 +34,7 @@ pub async fn openapi() -> String {
     let license = License::new("GPLv3");
 
     doc.info.license = Some(license);
-    doc.external_docs = Some(ExternalDocs::new("https://github.com/v3xlabs/enstate"));
+    doc.external_docs = Some(ExternalDocs::new("https://github.com/web3bio/enstate"));
 
     let mut tag1 = Tag::default();
     tag1.name = "Single Profile".to_string();

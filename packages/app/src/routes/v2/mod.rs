@@ -4,12 +4,12 @@ use std::time::Duration;
 
 use axum::response::sse::Event;
 use axum::response::{IntoResponse, Sse};
-use axum::{routing::get, Router};
 use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
     Json,
 };
+use axum::{routing::get, Router};
 use enstate_shared::core::lookup_data::LookupInfo;
 use enstate_shared::core::Profile;
 use ethers_core::types::Address;
@@ -25,10 +25,10 @@ use crate::routes::{
     RouteError,
 };
 
-
 pub fn setup_v2_router(state: Arc<crate::AppState>) -> Router<Arc<crate::AppState>> {
     Router::new()
-        .route("/discover/search", get(discovery_search)).with_state(state)
+        .route("/discover/search", get(discovery_search))
+        .with_state(state)
 }
 
 #[derive(Deserialize)]
@@ -65,12 +65,19 @@ pub async fn discovery_search(
     Query(query): Query<SearchQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Vec<ProfileSearchResult>>, RouteError> {
-
     info!("query: {:?}", query.s);
-    
+
     if let Some(discovery) = &state.service.discovery {
-        let profiles = discovery.query_search(&state.service, query.s).await.unwrap();
-        return Ok(Json(profiles.into_iter().map(|x| ProfileSearchResult { name: x.name }).collect()));
+        let profiles = discovery
+            .query_search(&state.service, query.s)
+            .await
+            .unwrap();
+        return Ok(Json(
+            profiles
+                .into_iter()
+                .map(|x| ProfileSearchResult { name: x.name })
+                .collect(),
+        ));
     }
     // get_bulk(
     //     Qs(AddressGetBulkQuery {

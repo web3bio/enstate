@@ -3,9 +3,9 @@ use std::env;
 use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::Resource;
-use tracing::{Level, warn};
-use tracing_subscriber::{EnvFilter, FmtSubscriber};
+use tracing::{warn, Level};
 use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 pub mod metrics;
 

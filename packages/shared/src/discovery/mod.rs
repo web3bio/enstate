@@ -10,5 +10,9 @@ pub struct SearchResult {
 pub trait Discovery: Send + Sync {
     async fn discover_name(&self, profile: &Profile) -> Result<(), ()>;
 
-    async fn query_search(&self, service: &ENSService, query: String) -> Result<Vec<SearchResult>, ()>;
+    async fn query_search(
+        &self,
+        service: &ENSService,
+        query: String,
+    ) -> Result<Vec<SearchResult>, ()>;
 }

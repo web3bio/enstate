@@ -13,6 +13,7 @@ use state::AppState;
 mod abi;
 mod cache;
 mod database;
+mod discovery;
 mod docs;
 mod http;
 mod models;
@@ -20,7 +21,6 @@ mod provider;
 mod routes;
 mod state;
 mod telemetry;
-mod discovery;
 
 #[tokio::main]
 async fn main() {
